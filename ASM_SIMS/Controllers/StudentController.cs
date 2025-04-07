@@ -11,7 +11,7 @@ namespace ASM_SIMS.Controllers
 
         public StudentController(SimsDataContext dbContext)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext; // DIP: Dependency Injection to reduce direct dependency
         }
 
         // Display the list of students
@@ -55,25 +55,21 @@ namespace ASM_SIMS.Controllers
             return View(new StudentViewModel());
         }
 
-        // Handle adding a student
+        // Handle the creation of a student
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(StudentViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Check for duplicates in FullName, Email, Phone
-                if (_dbContext.Students.Any(s => s.FullName == model.FullName && s.DeletedAt == null))
+                // Check for duplicate Email and Phone within the same ClassRoomId
+                if (_dbContext.Students.Any(s => s.Email == model.Email && s.ClassRoomId == model.ClassRoomId && s.DeletedAt == null))
                 {
-                    ModelState.AddModelError("FullName", "Student name already exists.");
+                    ModelState.AddModelError("Email", "Email already exists in this class.");
                 }
-                if (_dbContext.Students.Any(s => s.Email == model.Email && s.DeletedAt == null))
+                if (_dbContext.Students.Any(s => s.Phone == model.Phone && s.ClassRoomId == model.ClassRoomId && s.DeletedAt == null))
                 {
-                    ModelState.AddModelError("Email", "Email already exists.");
-                }
-                if (_dbContext.Students.Any(s => s.Phone == model.Phone && s.DeletedAt == null))
-                {
-                    ModelState.AddModelError("Phone", "Phone number already exists.");
+                    ModelState.AddModelError("Phone", "Phone number already exists in this class.");
                 }
 
                 if (!ModelState.IsValid)
@@ -85,11 +81,12 @@ namespace ASM_SIMS.Controllers
 
                 try
                 {
+                    // Create an Account
                     var account = new Account
                     {
-                        RoleId = 1,
+                        RoleId = 1, // Assume the role is Student
                         Username = model.Email.Split('@')[0],
-                        Password = "defaultPassword123",
+                        Password = "defaultPassword123", // Should encrypt the password in practice
                         Email = model.Email,
                         Phone = model.Phone,
                         Address = model.Address ?? "",
@@ -98,6 +95,7 @@ namespace ASM_SIMS.Controllers
                     _dbContext.Accounts.Add(account);
                     _dbContext.SaveChanges();
 
+                    // Create a Student
                     var student = new Student
                     {
                         AccountId = account.Id,
@@ -107,11 +105,12 @@ namespace ASM_SIMS.Controllers
                         Address = model.Address,
                         ClassRoomId = model.ClassRoomId,
                         CourseId = model.CourseId,
-                        Status = model.Status,
+                        Status = "Active", // Default to Active when creating a new student
                         CreatedAt = DateTime.Now
                     };
                     _dbContext.Students.Add(student);
                     _dbContext.SaveChanges();
+
                     TempData["save"] = true;
                     return RedirectToAction(nameof(Index));
                 }
@@ -156,25 +155,21 @@ namespace ASM_SIMS.Controllers
             return View(model);
         }
 
-        // Handle editing a student
+        // Handle the editing of a student
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(StudentViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Check for duplicates in FullName, Email, Phone (excluding the current record)
-                if (_dbContext.Students.Any(s => s.FullName == model.FullName && s.Id != model.Id && s.DeletedAt == null))
+                // Check for duplicate Email and Phone within the same ClassRoomId, excluding the current record
+                if (_dbContext.Students.Any(s => s.Email == model.Email && s.ClassRoomId == model.ClassRoomId && s.Id != model.Id && s.DeletedAt == null))
                 {
-                    ModelState.AddModelError("FullName", "Student name already exists.");
+                    ModelState.AddModelError("Email", "Email already exists in this class.");
                 }
-                if (_dbContext.Students.Any(s => s.Email == model.Email && s.Id != model.Id && s.DeletedAt == null))
+                if (_dbContext.Students.Any(s => s.Phone == model.Phone && s.ClassRoomId == model.ClassRoomId && s.Id != model.Id && s.DeletedAt == null))
                 {
-                    ModelState.AddModelError("Email", "Email already exists.");
-                }
-                if (_dbContext.Students.Any(s => s.Phone == model.Phone && s.Id != model.Id && s.DeletedAt == null))
-                {
-                    ModelState.AddModelError("Phone", "Phone number already exists.");
+                    ModelState.AddModelError("Phone", "Phone number already exists in this class.");
                 }
 
                 if (!ModelState.IsValid)
@@ -194,6 +189,7 @@ namespace ASM_SIMS.Controllers
                         return NotFound();
                     }
 
+                    // Update student information
                     student.FullName = model.FullName;
                     student.Email = model.Email;
                     student.Phone = model.Phone;
@@ -205,6 +201,7 @@ namespace ASM_SIMS.Controllers
 
                     _dbContext.Students.Update(student);
                     _dbContext.SaveChanges();
+
                     TempData["save"] = true;
                     return RedirectToAction(nameof(Index));
                 }
@@ -219,7 +216,7 @@ namespace ASM_SIMS.Controllers
             return View(model);
         }
 
-        // Handle deleting a student (soft delete)
+        // Handle the deletion of a student (soft delete)
         [HttpPost]
         public IActionResult Delete(int id)
         {
@@ -235,7 +232,7 @@ namespace ASM_SIMS.Controllers
             {
                 student.DeletedAt = DateTime.Now;
                 student.Status = "Deleted";
-                _dbContext.Students.Remove(student);
+                _dbContext.Students.Update(student);
                 _dbContext.SaveChanges();
                 TempData["save"] = true;
             }
