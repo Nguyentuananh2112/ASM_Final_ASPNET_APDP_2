@@ -232,7 +232,7 @@ namespace ASM_SIMS.Controllers
             {
                 student.DeletedAt = DateTime.Now;
                 student.Status = "Deleted";
-                _dbContext.Students.Update(student);
+                _dbContext.Students.Remove(student);
                 _dbContext.SaveChanges();
                 TempData["save"] = true;
             }
