@@ -2,74 +2,87 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
-	// Mục đích để kiểm tra xem trang hiện tại là trang nào để active menu (nó sẽ hiện màu sáng vào nơi mình click vào Sidebar)
-	string NameConroller = this.ViewContext.RouteData.Values["Controller"].ToString();
-	string ActiveDashboard = NameConroller == "Dashboard" ? "active" : "";
-	string ActiveCourses = NameConroller == "Courses" ? "active" : "";
-	string ActiveTeacher = NameConroller == "Teacher" ? "active" : "";
-	string ActiveStudent = NameConroller == "Student" ? "active" : "";
-	string ActiveClassRoom = NameConroller == "ClassRoom" ? "active" : "";
-	string ActiveCategory = NameConroller == "Category" ? "active" : "";
-	string ActiveRegister = NameConroller == "Register" ? "active" : "";
+    string NameController = this.ViewContext.RouteData.Values["Controller"].ToString();
+    string ActiveDashboard = NameController == "Dashboard" ? "active" : "";
+    string ActiveCourses = NameController == "Courses" ? "active" : "";
+    string ActiveTeacher = NameController == "Teacher" ? "active" : "";
+    string ActiveStudent = NameController == "Student" ? "active" : "";
+    string ActiveClassRoom = NameController == "ClassRoom" ? "active" : "";
+    string ActiveCategory = NameController == "Category" ? "active" : "";
+    string ActiveRegister = NameController == "Register" ? "active" : "";
 
+    // Lấy UserRole từ session
+    string userRole = Context.Session.GetString("UserRole") ?? "";
 }
+
 <nav id="sidebar" class="sidebar js-sidebar">
-	<div class="sidebar-content js-simplebar">
-		<a class="sidebar-brand" href="@Url.Action("Index","Dashboard")">
-			<span class="align-middle">SIMS</span>
-		</a>
+    <div class="sidebar-content js-simplebar">
+        <a class="sidebar-brand" href="@Url.Action("Index","Dashboard")">
+            <span class="align-middle">SIMS</span>
+        </a>
 
-		<ul class="sidebar-nav">
-			<li class="sidebar-header">
-				Managements
-			</li>
+        <ul class="sidebar-nav">
+            <li class="sidebar-header">
+                Managements
+            </li>
 
-			<li class="sidebar-item @ActiveDashboard">
-				<a class="sidebar-link" asp-area="" asp-controller="Dashboard" asp-action="Index">
-					<i class="align-middle" data-feather="book"></i> <span class="align-middle">Dashboard</span>
-				</a>
-			</li>
+            <!-- Dashboard: Hiển thị cho tất cả vai trò -->
+            <li class="sidebar-item @ActiveDashboard">
+                <a class="sidebar-link" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                    <i class="align-middle" data-feather="book"></i> <span class="align-middle">Dashboard</span>
+                </a>
+            </li>
 
+            <!-- Categories: Chỉ hiển thị cho Admin -->
+            @if (userRole == "Admin")
+            {
+                <li class="sidebar-item @ActiveCategory">
+                    <a class="sidebar-link" asp-area="" asp-controller="Category" asp-action="Index">
+                        <i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Categories</span>
+                    </a>
+                </li>
+            }
 
-			<li class="sidebar-item @ActiveCategory">
-				<a class="sidebar-link" asp-area="" asp-controller="Category" asp-action="Index">
-					<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Categories</span>
-				</a>
-			</li>
+            <!-- Courses: Hiển thị cho Admin, Student, Teacher -->
+            <li class="sidebar-item @ActiveCourses">
+                <a class="sidebar-link" asp-area="" asp-controller="Courses" asp-action="Index">
+                    <i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Courses</span>
+                </a>
+            </li>
 
-			<li class="sidebar-item @ActiveCourses">
-				<a class="sidebar-link" asp-area="" asp-controller="Courses" asp-action="Index">
-					<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Courses</span>
-				</a>
-			</li>
+            <!-- Teacher: Hiển thị cho Admin và Teacher -->
+            @if (userRole == "Admin" || userRole == "Teacher")
+            {
+                <li class="sidebar-item @ActiveTeacher">
+                    <a class="sidebar-link" asp-area="" asp-controller="Teacher" asp-action="Index">
+                        <i class="align-middle" data-feather="user"></i> <span class="align-middle">Teacher</span>
+                    </a>
+                </li>
+            }
 
-			<li class="sidebar-item @ActiveTeacher">
-				<a class="sidebar-link" asp-area="" asp-controller="Teacher" asp-action="Index">
-					<i class="align-middle" data-feather="user"></i> <span class="align-middle">Teacher</span>
-				</a>
-			</li>
+            <!-- Students: Hiển thị cho Admin, Student, Teacher -->
+            <li class="sidebar-item @ActiveStudent">
+                <a class="sidebar-link" asp-area="" asp-controller="Student" asp-action="Index">
+                    <i class="align-middle" data-feather="user"></i> <span class="align-middle">Students</span>
+                </a>
+            </li>
 
-			<li class="sidebar-item @ActiveStudent">
-				<a class="sidebar-link" asp-area="" asp-controller="Student" asp-action="Index">
-					<i class="align-middle" data-feather="user"></i> <span class="align-middle">Students</span>
-				</a>
-			</li>
+            <!-- Class Rooms: Hiển thị cho Admin, Student, Teacher -->
+            <li class="sidebar-item @ActiveClassRoom">
+                <a class="sidebar-link" asp-area="" asp-controller="ClassRoom" asp-action="Index">
+                    <i class="align-middle" data-feather="book"></i> <span class="align-middle">Class Rooms</span>
+                </a>
+            </li>
 
-			<li class="sidebar-item @ActiveClassRoom">
-				<a class="sidebar-link" asp-area="" asp-controller="ClassRoom" asp-action="Index">
-					<i class="align-middle" data-feather="book"></i> <span class="align-middle">Class Rooms</span>
-				</a>
-			</li>
-
-			<li class="sidebar-item @ActiveRegister">
-				<a class="sidebar-link" asp-area="" asp-controller="Register" asp-action="Index">
-					<i class="align-middle" data-feather="user-plus"></i> <span class="align-middle">Register</span>
-				</a>
-			</li>
-
-		</ul>
-
-
-	</div>
+            <!-- Register: Chỉ hiển thị cho Admin -->
+            @if (userRole == "Admin")
+            {
+                <li class="sidebar-item @ActiveRegister">
+                    <a class="sidebar-link" asp-area="" asp-controller="Register" asp-action="Index">
+                        <i class="align-middle" data-feather="user-plus"></i> <span class="align-middle">Register</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
 </nav>
-

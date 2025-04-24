@@ -6,12 +6,17 @@
     bool statusSave = TempData["save"] != null && Convert.ToBoolean(TempData["save"]);
     var courses = ViewBag.Courses as List<Courses>;
     var teachers = ViewBag.Teachers as List<Teacher>;
+    // Lấy UserRole từ session
+    string userRole = Context.Session.GetString("UserRole") ?? "";
 }
 
 <div class="row">
     <div class="col-sm-12 col-md-12">
         <h2>Class List</h2>
-        <a class="btn btn-primary" asp-action="Create">Add Class</a>
+        @if (userRole == "Admin")
+        {
+            <a class="btn btn-primary" asp-action="Create">Add Class</a>
+        }
 
         @if (TempData["save"] != null)
         {
@@ -60,13 +65,28 @@
                         <td>@item.Schedule</td>
                         <td>@item.Location</td>
                         <td>@item.Status</td>
-                        <td>
-                            <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id">Details</a>
-                            <a class="btn btn-info" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
-                        </td>
+                        @if (userRole == "Admin")
+                        {
+                            <td>
+                                <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                                <a class="btn btn-info" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        }
+                        @if (userRole == "Student")
+                        {
+                            <td>
+                                <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                            </td>
+                        }
+                        @if (userRole == "Teacher")
+                        {
+                            <td>
+                                <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

@@ -9,6 +9,8 @@
     var students = ViewBag.Students as List<StudentViewModel>;
     var courseName = ViewBag.CourseName;
     var teacherName = ViewBag.TeacherName;
+    // Lấy UserRole từ session
+    string userRole = Context.Session.GetString("UserRole") ?? "";
 }
 
 <div class="row">
@@ -36,7 +38,10 @@
                     <dt class="col-sm-2">Status</dt>
                     <dd class="col-sm-10">@Model.Status</dd>
                 </dl>
-                <a class="btn btn-primary" asp-action="AddStudentToClass" asp-route-classRoomId="@Model.Id">Edit Student</a>
+                @if (userRole == "Admin")
+                {
+                    <a class="btn btn-primary" asp-action="AddStudentToClass" asp-route-classRoomId="@Model.Id">Edit Student</a>
+                }
             </div>
         </div>
 

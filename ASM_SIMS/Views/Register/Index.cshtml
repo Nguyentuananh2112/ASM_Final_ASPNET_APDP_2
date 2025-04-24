@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model ASM_SIMS.Models.RegisterViewModel
+﻿@model ASM_SIMS.Models.RegisterViewModel
 @{
     ViewData["Title"] = "Register";
     Layout = "~/Views/Shared/_MainLayout.cshtml";
@@ -12,11 +9,23 @@
         <h2>Register New Account</h2>
         <div class="card">
             <div class="card-body">
-                @if (TempData["MessageRegister"] != null)
+                @if (TempData["save"] != null)
                 {
-                    <div class="alert alert-success">@TempData["MessageRegister"]</div>
+                    if (Convert.ToBoolean(TempData["save"]))
+                    {
+                        <div class="alert alert-success">Registration successful!</div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">Registration failed!</div>
+                    }
                 }
                 <form method="post" asp-controller="Register" asp-action="Index">
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Full Name</label>
+                        <input class="form-control" asp-for="FullName" placeholder="Enter full name" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
                     <div class="mb-3">
                         <label asp-for="Username" class="form-label">Username</label>
                         <input class="form-control" asp-for="Username" placeholder="Enter your username" />
@@ -53,7 +62,6 @@
                             <option value="">-- Select Role --</option>
                             <option value="Student">Student</option>
                             <option value="Teacher">Teacher</option>
-                            <option value="Admin">Admin</option>
                         </select>
                         <span asp-validation-for="Role" class="text-danger"></span>
                     </div>

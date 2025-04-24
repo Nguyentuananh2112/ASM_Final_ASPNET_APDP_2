@@ -1,4 +1,5 @@
 ﻿using ASM_SIMS.DB;
+using ASM_SIMS.Filters;
 using ASM_SIMS.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,6 +18,8 @@ namespace ASM_SIMS.Controllers
         }
 
         // Hiển thị danh sách giảng viên
+        [HttpGet]
+        [RoleAuthorize("Teacher", "Index")]
         public IActionResult Index()
         {
 
@@ -42,11 +45,17 @@ namespace ASM_SIMS.Controllers
                 }).ToList();
 
             ViewData["Title"] = "Teachers";
+            // Lấy thông tin tài khoản vừa tạo từ TempData
+            if (TempData["NewAccount"] != null)
+            {
+                ViewBag.NewAccount = Newtonsoft.Json.JsonConvert.DeserializeObject(TempData["NewAccount"].ToString());
+            }
             return View(teachers);
         }
 
         // Hiển thị form thêm giảng viên
         [HttpGet]
+        [RoleAuthorize("Teacher", "Create")]
         public IActionResult Create()
         {
             ViewBag.Courses = new SelectList(_dbContext.Courses, "Id", "NameCourse");
@@ -55,6 +64,7 @@ namespace ASM_SIMS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Teacher", "Create")]
         public IActionResult Create(TeacherViewModel model)
         {
             // Kiểm tra trùng lặp email
@@ -120,6 +130,7 @@ namespace ASM_SIMS.Controllers
 
         // Hiển thị form sửa giảng viên
         [HttpGet]
+        [RoleAuthorize("Teacher", "Edit")]
         public IActionResult Edit(int id)
         {
             var teacher = _dbContext.Teachers.Find(id);
@@ -141,6 +152,7 @@ namespace ASM_SIMS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Teacher", "Edit")]
         public IActionResult Edit(TeacherViewModel model)
         {
             // Kiểm tra trùng lặp email, bỏ qua bản ghi hiện tại
@@ -196,8 +208,10 @@ namespace ASM_SIMS.Controllers
             return View(model);
         }
 
-        
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RoleAuthorize("Teacher", "Delete")]
         public IActionResult Delete(int id)
         {
             var teacher = _dbContext.Teachers

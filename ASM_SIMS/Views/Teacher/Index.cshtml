@@ -6,11 +6,16 @@
     ViewData["Title"] = "Teachers";
     Layout = "~/Views/Shared/_MainLayout.cshtml";
     bool statusSave = TempData["save"] != null && Convert.ToBoolean(TempData["save"]);
+    // Lấy UserRole từ session
+    string userRole = Context.Session.GetString("UserRole") ?? "";
 }
 <div class="row">
     <div class="col-sm-12 col-md-12">
         <h2>List Teachers</h2>
-        <a class="btn btn-primary" asp-action="Create">Add Teacher</a>
+        @if (userRole == "Admin")
+        {
+            <a class="btn btn-primary" asp-action="Create">Add Teacher</a>
+        }
 
         @if (TempData["save"] != null)
         {
@@ -33,7 +38,10 @@
                     <th>Full Number</th>
                     <th>Address</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    @if (userRole == "Admin")
+                    {
+                        <th>Action</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -46,12 +54,15 @@
                         <td>@item.Phone</td>
                         <td>@item.Address</td>
                         <td>@item.Status</td>
-                        <td>
-                            <a class="btn btn-info" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
-                        </td>
+                        @if (userRole == "Admin")
+                        {
+                            <td>
+                                <a class="btn btn-info" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

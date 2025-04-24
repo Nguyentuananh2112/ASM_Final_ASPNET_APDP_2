@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace ASM_SIMS.Models
 {
@@ -8,6 +9,10 @@ namespace ASM_SIMS.Models
         [StringLength(60, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 60 characters")]
         public string Username { get; set; }
 
+        [Required(ErrorMessage = "Full Name is required")]
+        [StringLength(100, ErrorMessage = "Full Name must be less than 100 characters")]
+        public string FullName { get; set; }
+
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; }
@@ -15,6 +20,8 @@ namespace ASM_SIMS.Models
         [Required(ErrorMessage = "Password is required")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 100 characters")]
         [DataType(DataType.Password)]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[@&#$!%*?&])[A-Za-z\d@&#$!%*?&]{6,}$",
+            ErrorMessage = "Password must contain at least one uppercase letter, one number, and one special character (@, &, #, $, !, %, *, ?).")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Confirm password is required")]
@@ -29,6 +36,7 @@ namespace ASM_SIMS.Models
 
         public string Address { get; set; }
 
-        public string Role { get; set; } // Thêm trường Role cho dropdown
+        [Required(ErrorMessage = "Role is required")]
+        public string Role { get; set; }
     }
 }

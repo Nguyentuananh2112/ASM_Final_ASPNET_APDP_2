@@ -6,11 +6,16 @@
     ViewData["title"] = "Courses";
     Layout = "~/Views/Shared/_MainLayout.cshtml";
     bool statusSave = Convert.ToBoolean(TempData["save"]);
+    // Lấy UserRole từ session
+    string userRole = Context.Session.GetString("UserRole") ?? "";
 }
 <div class="row">
     <div class="col-sm-12 col-md-12">
         <h2>This is Courses Page</h2>
-        <a class="btn btn-primary" href="@Url.Action("Create", "Courses")">Add Course</a>
+        @if (userRole == "Admin")
+        {
+            <a class="btn btn-primary" href="@Url.Action("Create", "Courses")">Add Course</a>
+        }
         @if (TempData["save"] != null)
         {
             @if (statusSave)
@@ -40,7 +45,10 @@
                     <th>Vote</th>
                     <th>Status</th>
                     <th>Created At</th>
-                    <th>Actions</th>
+                    @if (userRole == "Admin")
+                    {
+                        <th>Action</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -57,10 +65,14 @@
                         <td>@item.Vote</td>
                         <td>@item.Status</td>
                         <td>@item.CreatedAt</td>
-                        <td>
-                            <a class="btn btn-info" href="@Url.Action("Edit", "Courses", new { id = item.Id })">Edit</a>
-                            <a class="btn btn-danger" href="@Url.Action("Delete", "Courses", new { id = item.Id })">Delete</a>
-                        </td>
+                        <!-- Chỉ hiển thị nút Edit và Delete cho Admin -->
+                        @if (userRole == "Admin")
+                        {
+                            <td>
+                                <a class="btn btn-info" href="@Url.Action("Edit", "Courses", new { id = item.Id })">Edit</a>
+                                <a class="btn btn-danger" href="@Url.Action("Delete", "Courses", new { id = item.Id })">Delete</a>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

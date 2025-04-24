@@ -2,6 +2,7 @@
 using ASM_SIMS.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace ASM_SIMS.Controllers
 {
@@ -12,13 +13,17 @@ namespace ASM_SIMS.Controllers
         // DIP: Tiêm SimsDataContext qua constructor
         public LoginController(SimsDataContext dbContext)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _dbContext = dbContext;
         }
 
         // GET: Login
         [HttpGet]
         public IActionResult Index()
         {
+            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             //// Kiểm tra xem database có tài khoản nào không
             //ViewBag.CanCreateFirstAdmin = !_dbContext.Accounts.Any();
             return View(new LoginViewModel());
@@ -32,26 +37,24 @@ namespace ASM_SIMS.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra thông tin đăng nhập từ database
                 var account = await _dbContext.Accounts
-                    .FirstOrDefaultAsync(a => a.Email == model.Email && a.Password == model.Password && a.DeletedAt == null);
+                    .Include(a => a.Role)
+                    .FirstOrDefaultAsync(a => a.Email == model.Email && a.DeletedAt == null);
 
-                if (account != null)
+                if (account != null && BCrypt.Net.BCrypt.Verify(model.Password, account.Password))
                 {
-                    // Lưu thông tin vào session
                     HttpContext.Session.SetString("UserId", account.Id.ToString());
                     HttpContext.Session.SetString("Username", account.Username);
+                    HttpContext.Session.SetString("UserRole", account.Role.Name);
                     return RedirectToAction("Index", "Dashboard");
                 }
-                else
-                {
-                    ViewData["MessageLogin"] = "Invalid email or password";
-                }
+
+                ViewData["MessageLogin"] = "Invalid email or password";
             }
             return View(model);
         }
 
-       
+
 
         // POST: Logout
         [HttpPost]

@@ -1,4 +1,5 @@
 ﻿using ASM_SIMS.DB;
+using ASM_SIMS.Filters;
 using ASM_SIMS.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,8 @@ namespace ASM_SIMS.Controllers
         }
 
         // Index: Show a list of classrooms
+        [HttpGet]
+        [RoleAuthorize("ClassRoom", "Index")]
         public IActionResult Index()
         {
             // Check for session
@@ -59,6 +62,7 @@ namespace ASM_SIMS.Controllers
 
         // GET: Display the create class form
         [HttpGet]
+        [RoleAuthorize("ClassRoom", "Create")]
         public IActionResult Create()
         {
             ViewBag.Courses = _dbContext.Courses
@@ -73,6 +77,7 @@ namespace ASM_SIMS.Controllers
         // POST: Handle the class creation
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("ClassRoom", "Create")]
         public IActionResult Create(ClassRoomViewModel model)
         {
             if (ModelState.IsValid)
@@ -119,6 +124,7 @@ namespace ASM_SIMS.Controllers
 
         // GET: Display the edit form for class
         [HttpGet]
+        [RoleAuthorize("ClassRoom", "Edit")]
         public IActionResult Edit(int id)
         {
             var classRoom = _dbContext.ClassRooms.Find(id);
@@ -143,6 +149,7 @@ namespace ASM_SIMS.Controllers
         // POST: Handle the edit form submission
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("ClassRoom", "Edit")]
         public IActionResult Edit(ClassRoomViewModel model)
         {
             if (ModelState.IsValid)
@@ -197,6 +204,7 @@ namespace ASM_SIMS.Controllers
         // POST: Handle the delete class
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("ClassRoom", "Delete")]
         public IActionResult Delete(int id)
         {
             try
@@ -222,6 +230,7 @@ namespace ASM_SIMS.Controllers
 
         // GET: Add students to the class
         [HttpGet]
+        [RoleAuthorize("ClassRoom", "AddStudentToClass")]
         public IActionResult AddStudentToClass(int classRoomId)
         {
             var classRoom = _dbContext.ClassRooms.FirstOrDefault(c => c.Id == classRoomId && c.DeletedAt == null);
@@ -260,6 +269,7 @@ namespace ASM_SIMS.Controllers
         // POST: Assign selected students to the class
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("ClassRoom", "AddStudentToClass")]
         public IActionResult AddStudentToClass(AssignStudentsViewModel model)
         {
             var classRoom = _dbContext.ClassRooms.FirstOrDefault(c => c.Id == model.ClassRoomId && c.DeletedAt == null);
@@ -332,6 +342,7 @@ namespace ASM_SIMS.Controllers
 
         // Details: Show class information and student list
         [HttpGet]
+        [RoleAuthorize("ClassRoom", "Details")]
         public IActionResult Details(int id)
         {
             var classRoom = _dbContext.ClassRooms

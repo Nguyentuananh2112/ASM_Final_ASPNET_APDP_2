@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASM_SIMS.Migrations
 {
     [DbContext(typeof(SimsDataContext))]
-    [Migration("20250404123707_InitialCreate")]
+    [Migration("20250424095101_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -71,6 +71,8 @@ namespace ASM_SIMS.Migrations
                         .HasColumnName("Username");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("Accounts");
                 });
@@ -227,6 +229,41 @@ namespace ASM_SIMS.Migrations
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("ASM_SIMS.DB.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("Varchar(50)")
+                        .HasColumnName("Name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Teacher"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Student"
+                        });
+                });
+
             modelBuilder.Entity("ASM_SIMS.DB.Student", b =>
                 {
                     b.Property<int>("Id")
@@ -344,6 +381,17 @@ namespace ASM_SIMS.Migrations
                     b.HasIndex("CourseId");
 
                     b.ToTable("Teachers");
+                });
+
+            modelBuilder.Entity("ASM_SIMS.DB.Account", b =>
+                {
+                    b.HasOne("ASM_SIMS.DB.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("ASM_SIMS.DB.ClassRoom", b =>

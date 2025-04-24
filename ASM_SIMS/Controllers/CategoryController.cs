@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ASM_SIMS.Helpers;
 using ASM_SIMS.DB;
 using Microsoft.EntityFrameworkCore;
+using ASM_SIMS.Filters;
 
 namespace ASM_SIMS.Controllers
 {
@@ -13,43 +14,43 @@ namespace ASM_SIMS.Controllers
         {
             _dbcontext = context;
         }
+
+        [HttpGet]
+        [RoleAuthorize("Category", "Index")] // Thêm [RoleAuthorize] để giới hạn quyền truy cập.
         public IActionResult Index()
         {
 
             // Tao list de hien thi du lieu
-            CategoryViewModel categoryModel = new CategoryViewModel();
-            categoryModel.categoryList = new List<CategoryDetail>();
-            var data = from m in _dbcontext.Categories
-                       select m;
-            data.ToList();
-            foreach (var item in data)
+            CategoryViewModel categoryModel = new CategoryViewModel
             {
-                categoryModel.categoryList.Add(new CategoryDetail
-                {
-                    Id = item.Id,
-                    NameCategory = item.NameCategory,
-                    Description = item.Description,
-                    Avartar = item.Avatar,
-                    Status = item.Status,
-                    UpdatedAt = item.UpdatedAt,
-                    CreatedAt = item.CreatedAt
-
-                });
-            }
+                categoryList = _dbcontext.Categories
+                    .Where(c => c.DeletedAt == null)
+                    .Select(m => new CategoryDetail
+                    {
+                        Id = m.Id,
+                        NameCategory = m.NameCategory,
+                        Description = m.Description,
+                        Avartar = m.Avatar,
+                        Status = m.Status,
+                        UpdatedAt = m.UpdatedAt,
+                        CreatedAt = m.CreatedAt
+                    }).ToList()
+            };
             ViewData["title"] = "Category";
             return View(categoryModel);
         }
 
         [HttpGet]
+        [RoleAuthorize("Category", "Create")]
         public IActionResult Create()
         {
 
-            CategoryDetail model = new CategoryDetail();
-            return View(model);
+            return View(new CategoryDetail());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Category", "Create")]
         public async Task<IActionResult> Create(CategoryDetail model, IFormFile ViewAvatar)
         {
 
@@ -69,14 +70,14 @@ namespace ASM_SIMS.Controllers
 
                     };
                     _dbcontext.Categories.Add(dataCreate);
-                    _dbcontext.SaveChanges(true);
+                    await _dbcontext.SaveChangesAsync();
                     TempData["save"] = true;
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     TempData["save"] = false;
-                    return Ok(ex.Message.ToString());
+
                 }
                 return RedirectToAction("Index", "Category");
             }
@@ -86,6 +87,7 @@ namespace ASM_SIMS.Controllers
 
         // GET: Hiển thị form chỉnh sửa danh mục
         [HttpGet]
+        [RoleAuthorize("Category", "Edit")]
         public IActionResult Edit(int id)
         {
             var category = _dbcontext.Categories
@@ -111,6 +113,7 @@ namespace ASM_SIMS.Controllers
         // POST: Cập nhật danh mục
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Category", "Edit")]
         public async Task<IActionResult> Edit(CategoryDetail model, IFormFile ViewAvatar)
         {
             // Không yêu cầu ModelState.IsValid hoàn toàn, chỉ cần kiểm tra dữ liệu cần thiết
@@ -161,6 +164,7 @@ namespace ASM_SIMS.Controllers
         // POST: Xóa danh mục (soft delete)
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Category", "Delete")]
         public async Task<IActionResult> Delete(int id)
         {
             var category = _dbcontext.Categories
@@ -168,13 +172,36 @@ namespace ASM_SIMS.Controllers
 
             if (category == null)
             {
+                TempData["save"] = false;
+                TempData["message"] = "Category not found";
                 return NotFound();
             }
 
-            category.DeletedAt = DateTime.Now;
-            category.Status = "Deleted";
-            _dbcontext.Categories.Remove(category);
-            await _dbcontext.SaveChangesAsync();
+            try
+            {
+                // Kiểm tra xem danh mục có được tham chiếu bởi Courses không
+                bool isReferenced = await _dbcontext.Courses.AnyAsync(c => c.CategoryId == id && c.DeletedAt == null);
+
+                if (isReferenced)
+                {
+                    TempData["save"] = false;
+                    TempData["message"] = "Delete Fail: This category is being used by one or more courses";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                category.DeletedAt = DateTime.Now;
+                category.Status = "Deleted";
+                _dbcontext.Categories.Remove(category);
+                await _dbcontext.SaveChangesAsync();
+
+                TempData["save"] = true;
+                TempData["message"] = "Category deleted successfully";
+            }
+            catch (Exception)
+            {
+                TempData["save"] = false;
+                TempData["message"] = "Delete Fail: An error occurred";
+            }
 
             return RedirectToAction(nameof(Index));
         }

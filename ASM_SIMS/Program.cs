@@ -1,6 +1,8 @@
-using ASM_SIMS.DB;
+﻿using ASM_SIMS.DB;
+using ASM_SIMS.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using BCrypt.Net;
 
 namespace ASM_SIMS
 {
@@ -19,6 +21,7 @@ namespace ASM_SIMS
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+            builder.Services.AddScoped<IAuthorizationService, AuthorizationService>(); // Đăng ký service
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -33,10 +36,11 @@ namespace ASM_SIMS
 
             var app = builder.Build();
 
-            // Kh?i t?o t�i kho?n m?c ??nh
+            // Kh?i t?o tài kho?n m?c ??nh
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<SimsDataContext>();
+                await dbContext.Database.MigrateAsync(); // Đảm bảo migration được áp dụng
                 await SeedDefaultAdmin(dbContext);
             }
 
@@ -58,20 +62,20 @@ namespace ASM_SIMS
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Login}/{action=Index}/{id?}"); // khi ch?y d? �n th� s? ch?y login ??u ti�n 
+                pattern: "{controller=Login}/{action=Index}/{id?}"); // khi ch?y d? án thì s? ch?y login ??u tiên 
 
             app.Run();
         }
         private static async Task SeedDefaultAdmin(SimsDataContext dbContext)
         {
-            // Ki?m tra xem c� t�i kho?n n�o trong database kh�ng
+            // Ki?m tra xem có tài kho?n nào trong database không
             if (!dbContext.Accounts.Any())
             {
                 var defaultAdmin = new Account
                 {
                     RoleId = 1, // Admin
                     Username = "admin",
-                    Password = "admin123", // N�n m� h�a trong th?c t?
+                    Password = BCrypt.Net.BCrypt.HashPassword("admin123"), // Nên mã hóa trong th?c t?
                     Email = "admin@sims.com",
                     Phone = "1234567890",
                     Address = "Default Admin Address",

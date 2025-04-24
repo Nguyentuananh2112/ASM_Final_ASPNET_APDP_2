@@ -1,4 +1,5 @@
 ﻿using ASM_SIMS.DB;
+using ASM_SIMS.Filters;
 using ASM_SIMS.Helpers;
 using ASM_SIMS.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,8 @@ namespace ASM_SIMS.Controllers
         }
 
         // Hiển thị danh sách khóa học với CategoryName
+        [HttpGet]
+        [RoleAuthorize("Course", "Index")]
         public IActionResult Index()
         {
             CourseViewModel courseModel = new CourseViewModel
@@ -49,6 +52,7 @@ namespace ASM_SIMS.Controllers
 
         // Hiển thị form tạo mới khóa học
         [HttpGet]
+        [RoleAuthorize("Course", "Create")]
         public IActionResult Create()
         {
             ViewBag.Categories = _dbContext.Categories.ToList();
@@ -63,6 +67,7 @@ namespace ASM_SIMS.Controllers
         // Xử lý tạo mới khóa học
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Course", "Create")]
         public async Task<IActionResult> Create(CourseDetail model)
         {
             if (ModelState.IsValid)
@@ -109,6 +114,7 @@ namespace ASM_SIMS.Controllers
 
         // Hiển thị form chỉnh sửa khóa học
         [HttpGet]
+        [RoleAuthorize("Course", "Edit")]
         public IActionResult Edit(int id)
         {
             var course = _dbContext.Courses
@@ -138,6 +144,7 @@ namespace ASM_SIMS.Controllers
         // Xử lý chỉnh sửa khóa học
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RoleAuthorize("Course", "Edit")]
         public async Task<IActionResult> Edit(CourseDetail model)
         {
             if (ModelState.IsValid)
@@ -185,6 +192,7 @@ namespace ASM_SIMS.Controllers
 
         // Xử lý xóa khóa học
         [HttpGet]
+        [RoleAuthorize("Course", "Delete")]
         public async Task<IActionResult> Delete(int id)
         {
             try

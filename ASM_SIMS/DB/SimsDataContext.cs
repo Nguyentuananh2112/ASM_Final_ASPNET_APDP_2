@@ -16,7 +16,7 @@ namespace ASM_SIMS.DB
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<ClassRoom> ClassRooms { get; set; }
-
+        public DbSet<Role> Roles { get; set; } // Thêm DbSet cho Role
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 // Cấu hình quan hệ giữa Student và Account
@@ -36,8 +36,20 @@ namespace ASM_SIMS.DB
                 .HasOne(s => s.Course)
                 .WithMany()
                 .HasForeignKey(s => s.CourseId);
-
             
+            // Cấu hình quan hệ giữa Account và Role
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Role)
+                .WithMany()
+                .HasForeignKey(a => a.RoleId);
+
+            // Seed dữ liệu cho Role
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "Admin" },
+                new Role { Id = 2, Name = "Teacher" },
+                new Role { Id = 3, Name = "Student" }
+            );
+
         }
     }
 }

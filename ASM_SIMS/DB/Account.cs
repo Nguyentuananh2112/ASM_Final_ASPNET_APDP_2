@@ -15,6 +15,9 @@ namespace ASM_SIMS.DB
         public int RoleId { get; set; }
 
 
+        public Role Role { get; set; } // Thêm navigation property
+
+
         [Column("Username", TypeName = "Varchar(60)"), Required]
         public string Username { get; set; }
 
